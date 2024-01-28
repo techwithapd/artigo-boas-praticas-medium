@@ -1,0 +1,59 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches:
+      - master 
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '11'
+
+    - name: Clean
+      run: mvn clean 
+
+    - name: Validate
+      run: mvn validate 
+
+    - name: Compile
+      run: mvn compile
+      
+    - name: Test Compile
+      run: mvn test-compile
+      
+    - name: Package
+      run: mvn package
+
+    - name: Verify
+      run: mvn verify
+
+    - name: Install
+      run: mvn install
+
+    - name: Build Docker image
+      run: docker build -t yourusername/yourappname:${{ github.sha }} .
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+    - name: Push Docker image
+      uses: docker/build-push-action@v5
+      with:
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
